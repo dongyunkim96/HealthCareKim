@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 try {
   await writeFile(
     '.env.local',
-    `DATABASE_PATH=./data/healthcarekim.sqlite\nSESSION_SECRET=${randomBytes(48).toString('hex')}\nAPP_ORIGIN=http://127.0.0.1:3000\n`,
+    `DATABASE_PATH=./data/healthcarekim.sqlite\nDATABASE_URL=\nSESSION_SECRET=${randomBytes(48).toString('hex')}\nAPP_ORIGIN=http://127.0.0.1:3000\n`,
     { flag: 'wx' },
   );
   console.log(

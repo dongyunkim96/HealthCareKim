@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { cookieSession, context, revoke } from '@/lib/auth';
 import { createDemo } from '@/lib/seed';
-import { sqlite, run, one } from '@/lib/db';
+import { transaction, lockDemoCreation, run, one } from '@/lib/db';
 import { trustedOrigin } from '@/lib/origin';
 export const runtime = 'nodejs';
 export async function POST(req: Request) {
@@ -17,37 +17,39 @@ export async function POST(req: Request) {
     const current = await context();
     const cookie = await cookieSession();
     if (input.action === 'logout') {
-      if (current) revoke(current.sessionId);
+      if (current) await revoke(current.sessionId);
       cookie.destroy();
       return Response.json({ success: true });
     }
     if (input.action === 'switch') {
       if (!current) return Response.json({ error: 'Session expired' }, { status: 401 });
-      const user = one<{ id: string }>(
-        'SELECT id FROM users WHERE demo_id=? AND persona=?',
-        current.demoId,
-        input.persona,
-      );
+      const user = await one<{
+        id: string;
+      }>('SELECT id FROM users WHERE demo_id=? AND persona=?', current.demoId, input.persona);
       if (!user) return Response.json({ error: 'Persona unavailable' }, { status: 404 });
       const id = randomUUID();
-      sqlite.transaction(() => {
-        revoke(current.sessionId);
-        run(
+      await transaction(async () => {
+        await revoke(current.sessionId);
+        await run(
           'INSERT INTO sessions VALUES(?,?,?,?)',
           id,
           current.demoId,
           user.id,
           Date.now() + 86400000,
         );
-      })();
+      });
       cookie.sid = id;
     } else {
       if (input.action === 'reset' && !current)
         return Response.json({ error: 'Session expired' }, { status: 401 });
       // Delete only the caller's synthetic workspace. Never reset another demo.
-      if (current)
-        sqlite.transaction(() => run('DELETE FROM demo_sessions WHERE id=?', current.demoId))();
-      cookie.sid = createDemo(input.persona).sessionId;
+      cookie.sid = (
+        await transaction(async () => {
+          await lockDemoCreation();
+          if (current) await run('DELETE FROM demo_sessions WHERE id=?', current.demoId);
+          return createDemo(input.persona);
+        })
+      ).sessionId;
     }
     await cookie.save();
     return Response.json({ success: true });

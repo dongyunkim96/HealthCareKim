@@ -1,5 +1,33 @@
 # Verification report
 
+## Neon adapter conversion — November 2, 2026
+
+The application now has an asynchronous Neon PostgreSQL runtime adapter selected by `DATABASE_URL`, with the existing SQLite development fallback retained. It is connected to the user-created Neon Free project `neon-indigo-zebra` (`billowing-morning-78982436`), branch `main`, database `neondb`, in AWS us-east-1. Schema migration succeeded through the direct endpoint; application and seed traffic succeeded through the pooled endpoint. No paid plan or external website deployment was activated.
+
+| Check                                                               | Actual result                                    |
+| ------------------------------------------------------------------- | ------------------------------------------------ |
+| SQLite backend + parameter compilation                              | 27 tests passed                                  |
+| PostgreSQL engine + parameter compilation (`npm run test:postgres`) | 27 tests passed in PGlite with `btree_gist`      |
+| PostgreSQL-backed production browser suite                          | 14 tests passed in 47.6 seconds                  |
+| Type checking and lint                                              | Passed                                           |
+| Production build without hosted credentials                         | Passed                                           |
+| SQLite migration and repeated named seed                            | Passed; existing fixture preserved               |
+| Production dependency audit after adding Neon/ws                    | 0 known vulnerabilities                          |
+| Live Neon browser workflows through local production app            | 6 tests passed (5 in 24.3s; concurrency in 3.5s) |
+| Live Neon repeated seed                                             | Same fixture preserved                           |
+
+The browser run targeted `http://127.0.0.1:3003` with a separate persistent local PGlite database. It covered the original 13 scenarios plus reset isolation between independent demo workspaces. The 360/390/768/1024/1440 viewport checks and light/dark/mobile accessibility scans passed. Updated screenshots and accessibility JSON files come from that run.
+
+SQLite's competing-writer tests still use independent Node processes. The embedded PostgreSQL run tests competing asynchronous requests in its single engine. Separately, live Neon competing HTTP requests used distinct pooled transactions and returned one success and one HTTP 409 for both stale case writes and overlapping bookings; the case version advanced once and exactly one note persisted. Local suites check transactions, authorization, tenancy, stale versions, bulk results, and appointment overlaps. Parameter compilation additionally checks quoted question marks, hostile input binding, and missing/extra values. Tests clear `DATABASE_URL` before imports so fault-injection tests cannot alter a hosted database.
+
+The schema migration now installs the PostgreSQL overlap exclusion constraint under an advisory lock. Demo creation uses batched inserts, a 100-workspace cap protected by a transaction advisory lock, and 24-hour expiration. Each mutation stays on its acquired connection through AsyncLocalStorage. Clinic row locks serialize permission checks and last-administrator decisions. Reset removes the current workspace and creates its replacement atomically.
+
+Live browser verification also covered assignment/status/audit/refresh persistence and clinic isolation, API roles/persona switching, appointment create/conflict/reschedule/cancel, stale-edit draft recovery, and reset isolation between independent workspaces. Credentials are saved only in the ignored `.env.local`; existing session settings were preserved. See [Neon setup](neon-setup.md). The app server remains local at port 3001; publishing the website and configuring its deployment environment are still separate work.
+
+The performance measurements below predate this adapter conversion. They describe the initial local build and should not be interpreted as Neon latency measurements.
+
+# Initial local-build verification (historical)
+
 Verified November 2, 2026, on Windows with Node.js 20.19.3, Next.js 16.4.4, and headless Chromium 156.0.8078.4. All operational data was synthetic. No external deployment was published.
 
 ## Final results
@@ -86,7 +114,7 @@ These are local paint/navigation timings, not Lighthouse scores or a remote-depl
 
 ## Remaining limits
 
-- SQLite is the verified runtime. PostgreSQL has a supplied schema and overlap exclusion constraint, but no wired runtime adapter and no live verification.
+- At the initial-build stage only SQLite was wired. The Neon adapter and successful hosted database verification are described above; public website deployment remains separate.
 - Docker source is prepared but was not built; Docker was unavailable here.
 - Installation reported 16 moderate development-tool advisories, primarily in the ESLint/minimatch chain. The production dependency audit reported zero. Forced incompatible tooling upgrades were not applied solely to suppress those advisories.
 - The demo targets one persistent Node instance. Customer identity lifecycle, distributed abuse controls, real patient information, and clinical workflows remain outside scope.

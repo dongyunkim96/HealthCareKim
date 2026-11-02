@@ -20,7 +20,7 @@ export default async function AppPage({
   )
     notFound();
   try {
-    scope(ctx, clinicSlug);
+    await scope(ctx, clinicSlug);
   } catch {
     notFound();
   }

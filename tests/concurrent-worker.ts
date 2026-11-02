@@ -4,8 +4,8 @@ const input = JSON.parse(process.argv[2]);
 try {
   const result =
     input.kind === 'case'
-      ? editCase(input.ctx as Context, 'willow', input.edit)
-      : saveAppointment(input.ctx as Context, 'willow', input.appointment);
+      ? await editCase(input.ctx as Context, 'willow', input.edit)
+      : await saveAppointment(input.ctx as Context, 'willow', input.appointment);
   console.log(JSON.stringify({ success: true, result }));
 } catch (e) {
   console.log(

@@ -12,7 +12,7 @@ npm run setup
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000** and choose **Explore demo**. `setup` creates an ignored `.env.local` with a random session secret and never overwrites an existing environment. Keep the same secret across restarts to retain access to existing demo sessions. No external account, real patient data, or hosted database is needed.
+Open **http://127.0.0.1:3000** and choose **Explore demo**. `setup` creates an ignored `.env.local` with a random session secret and never overwrites an existing environment. Keep the same secret across restarts to retain access to existing demo sessions. No external account or hosted database is needed for the SQLite development mode. For Neon Free hosting, follow [Neon setup](docs/neon-setup.md).
 
 For a production build:
 
@@ -21,7 +21,7 @@ npm run build
 npm start
 ```
 
-Set a persistent `DATABASE_PATH`, a random `SESSION_SECRET` containing at least 32 characters, and the exact public `APP_ORIGIN`. Use HTTPS for deployed sessions. The server refuses production sessions without a valid secret. The production server listens on port 3000 unless `PORT` is set.
+For Neon hosting, set the server-only `DATABASE_URL`, a random `SESSION_SECRET` containing at least 32 characters, and the exact public `APP_ORIGIN`. For local SQLite mode, use a persistent `DATABASE_PATH` instead. Use HTTPS for deployed sessions. The server refuses production sessions without a valid secret. The production server listens on port 3000 unless `PORT` is set.
 
 ## Demo walkthrough
 
@@ -51,17 +51,17 @@ The demo persona selector is limited to users already created in the current syn
 - Customized Radix/shadcn-style composition for accessible dialogs, menus, buttons, and tables. Original abstract SVG brand icon and Lucide icons.
 - TanStack Query owns interactive server data. TanStack Table provides headless table composition. Filters, sort, and pagination live in the URL; local component state owns unsaved forms and current-page selection.
 - tRPC validates procedure input with Zod. React Hook Form and Zod manage appointment forms.
-- SQLite development adapter using better-sqlite3 and Drizzle. Drizzle performs typed clinic scoping; explicit prepared SQL handles transactional operations and joined/paginated queries. No browser storage acts as the database.
+- Asynchronous Neon PostgreSQL adapter with a SQLite development fallback. Drizzle compiles parameterized SQL for both dialects. AsyncLocalStorage keeps each transaction on its own connection. No browser storage acts as the database.
 - iron-session encrypts/seals an opaque session ID in an HTTP-only cookie. Users, sessions, demo expiry, and memberships are checked on the server. Cookie roles or client-provided identities are never authoritative.
 - Recharts is loaded only when the overview mounts. Charts use stored case records and include a table equivalent. date-fns-tz handles clinic-local time over UTC epoch-millisecond storage.
 
-Important source locations: `src/lib/service.ts` (scoped domain operations), `src/server/router.ts` (runtime-validated API), `src/lib/auth.ts` (sessions), `src/lib/seed.ts` (demo fixtures), `src/components/` (interactive screens), and `migrations/0001_sqlite.sql` (executable schema).
+Important source locations: `src/lib/service.ts` (scoped domain operations), `src/server/router.ts` (runtime-validated API), `src/lib/auth.ts` (sessions), `src/lib/demo-fixtures.ts` (batched demo fixtures), `src/components/` (interactive screens), and `migrations/0001_sqlite.sql` (executable schema).
 
 ## Data model
 
 DemoSession owns Users and Clinics. Users have Memberships per clinic and revocable Sessions. Each clinic owns Patients, Cases, CaseNotes, Appointments, SavedViews, TablePreferences, and AuditEvents. Composite foreign keys prohibit cross-clinic patient, case, and assignee relationships. Indexes scope case pages, appointment availability, and audit pagination. SQLite migrations apply transactionally once per schema version.
 
-Case writes use expected-version checks and atomic audit insertion. Appointment overlap triggers protect insert and update operations inside immediate transactions. Last-administrator checks run inside the same write transaction. Bulk updates deliberately return per-record results, allowing partial success.
+Case writes use expected-version checks and atomic audit insertion. PostgreSQL exclusion constraints and SQLite triggers prevent overlapping active appointments. Clinic row locks on PostgreSQL and immediate transactions on SQLite serialize administrative writes. Last-administrator checks run inside the same write transaction. Bulk updates deliberately return per-record results, allowing partial success.
 
 ## Responsive behavior
 
@@ -73,6 +73,7 @@ Desktop uses a full sidebar, cases table, and side detail sheet. Tablet uses a l
 npm run typecheck
 npm run lint
 npm test
+npm run test:postgres
 npm run build
 # Start the app on port 3001 for the default browser configuration:
 # PowerShell: $env:PORT='3001'; npm run dev
@@ -85,24 +86,20 @@ Set `TEST_BASE_URL` to test another server origin. On this workstation the exist
 
 See [verification results](docs/verification.md), [engineering decisions](docs/engineering-decisions.md), and [screenshots](docs/screenshots/). Source and dependency license notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-## Deployment and PostgreSQL reference
+## Neon Free deployment preparation
 
-No external deployment has been published. A Dockerfile and Compose service prepare a single Node instance with a persistent SQLite volume. Supply `SESSION_SECRET` and `APP_ORIGIN`, then run `docker compose up --build app`. Docker was not available for verification in this session; treat the container configuration as prepared source, not a verified deployment.
+The Neon runtime adapter is implemented. Set `DATABASE_URL` to your Neon pooled connection URL and run `npm run db:migrate` before the first hosted request. `npm run db:seed` creates an idempotent synthetic fixture. Existing local SQLite demo records remain local; they are not automatically uploaded.
 
-The verified application uses SQLite. **PostgreSQL is not wired into the application runtime.** An executable PostgreSQL reference schema is supplied at `migrations/postgres/0001.sql`, including a GiST exclusion constraint for appointment overlap. To initialize a local reference database:
+The local application is connected to the user-created Neon Free project `neon-indigo-zebra` in AWS us-east-1. The schema and synthetic fixture are initialized, and six hosted-database browser workflows passed, including competing writes over separate connections. Credentials remain in ignored local environment settings. See [Neon Free setup](docs/neon-setup.md) for connection details and verification. Public website deployment remains separate. A Vercel process without `DATABASE_URL` fails clearly rather than falling back to ephemeral local files.
 
-```sh
-docker compose --profile postgres-reference up -d postgres
-# To apply manually to an existing database:
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/postgres/0001.sql
-```
+The PostgreSQL schema at `migrations/postgres/0001.sql` includes `btree_gist`, the appointment overlap exclusion constraint, and advisory locking around migrations. `DATABASE_URL_UNPOOLED` selects the direct migration endpoint while the application uses pooled `DATABASE_URL`. Local PostgreSQL-engine tests run in PGlite with that extension; the hosted transport was also verified against Neon. `npm test` retains the SQLite regression suite.
 
-The PostgreSQL service initializes the schema automatically on a fresh volume. To run the application on PostgreSQL, replace the synchronous SQLite query boundary with an asynchronous Drizzle/pg adapter and run the same isolation, transaction, and concurrency suite against PostgreSQL. Merely supplying `DATABASE_URL` does not change adapters. PostgreSQL and Docker were not provisioned or tested here.
+Docker source supports either a persistent SQLite volume or an explicitly supplied `DATABASE_URL`. Docker was unavailable here, so its configuration remains unverified. The optional Compose PostgreSQL reference service initializes the schema, but the application’s hosted transport uses the Neon serverless driver rather than a generic TCP PostgreSQL driver.
 
 ## Limits and honest scope
 
 This is a synthetic-data engineering demonstration, not clinical software. It provides no diagnosis, treatment, prescribing, real payments, patient uploads, email invitations, HIPAA certification, or security certification, and has no affiliation with Bask Health. Do not enter real patient information.
 
-SQLite is appropriate for this single-instance portfolio demo. Multi-instance/serverless deployment needs the PostgreSQL adapter and shared abuse controls. Demo expiration, workspace count bounds, origin checks, encrypted cookies, tenant authorization, and database constraints are implemented; a production customer identity lifecycle and distributed rate limiting are not.
+SQLite is appropriate for this single-instance portfolio demo. The Neon adapter supports hosted/serverless use; production-scale exposure still needs shared abuse controls. Demo expiration, workspace count bounds, origin checks, encrypted cookies, tenant authorization, and database constraints are implemented; a production customer identity lifecycle and distributed rate limiting are not.
 
 Automated viewport and touch emulation do not constitute physical-device or assistive-technology testing. Browser coverage uses Chromium. Remaining development-only dependency advisories and actual measurement conditions are recorded in `docs/verification.md`.

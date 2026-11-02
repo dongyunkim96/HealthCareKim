@@ -1,5 +1,6 @@
--- PostgreSQL reference schema. The application currently runs the verified SQLite adapter.
+-- Executable Neon/PostgreSQL schema. Run npm run db:migrate before first hosted use.
 BEGIN;
+SELECT pg_advisory_xact_lock(73031000);
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 CREATE TABLE IF NOT EXISTS demo_sessions(id TEXT PRIMARY KEY, expires_at BIGINT NOT NULL, created_at BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS clinics(id TEXT PRIMARY KEY, demo_id TEXT NOT NULL REFERENCES demo_sessions(id) ON DELETE CASCADE, slug TEXT NOT NULL, name TEXT NOT NULL, timezone TEXT NOT NULL DEFAULT 'America/New_York', accent TEXT NOT NULL DEFAULT 'teal', start_hour BIGINT NOT NULL DEFAULT 8, end_hour BIGINT NOT NULL DEFAULT 18, UNIQUE(demo_id,slug));
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS saved_views(id TEXT PRIMARY KEY, clinic_id TEXT NOT N
 CREATE TABLE IF NOT EXISTS audit_events(id TEXT PRIMARY KEY, clinic_id TEXT NOT NULL REFERENCES clinics(id) ON DELETE CASCADE, actor TEXT NOT NULL, action TEXT NOT NULL, entity_id TEXT NOT NULL, description TEXT NOT NULL, created_at BIGINT NOT NULL);
 CREATE INDEX IF NOT EXISTS audit_scope ON audit_events(clinic_id,created_at,id);
 CREATE TABLE IF NOT EXISTS table_preferences(clinic_id TEXT NOT NULL REFERENCES clinics(id) ON DELETE CASCADE, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, columns TEXT NOT NULL, PRIMARY KEY(clinic_id,user_id));
+CREATE TABLE IF NOT EXISTS seed_fixture(key TEXT PRIMARY KEY,demo_id TEXT NOT NULL REFERENCES demo_sessions(id) ON DELETE CASCADE);
 DO $$ BEGIN
 IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='appointments_no_overlap') THEN
 ALTER TABLE appointments ADD CONSTRAINT appointments_no_overlap

@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
-  serverExternalPackages: ['better-sqlite3'],
+  serverExternalPackages: ['better-sqlite3', '@electric-sql/pglite', 'ws'],
   devIndicators: false,
   turbopack: { root: process.cwd() },
   async headers() {

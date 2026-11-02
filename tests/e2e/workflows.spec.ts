@@ -360,3 +360,63 @@ test('display preferences persist, and dark/mobile layouts remain accessible', a
   await fs.writeFile('docs/accessibility-variants.json', JSON.stringify(report, null, 2));
   expect(Object.values(report).flat()).toEqual([]);
 });
+test('competing HTTP writes preserve case versions and prevent overlapping bookings', async ({
+  page,
+}) => {
+  await enter(page);
+  const cases = await query(page, 'cases', { slug: 'willow', filters: { status: 'New' } });
+  const record = cases.data.rows[0];
+  const edit = {
+    slug: 'willow',
+    edit: { id: record.id, version: record.version, note: 'Competing HTTP writer' },
+  };
+  const edits = await Promise.all([mutate(page, 'editCase', edit), mutate(page, 'editCase', edit)]);
+  expect(edits.map((r) => r.response.status()).sort()).toEqual([200, 409]);
+  const detail = await query(page, 'detail', { slug: 'willow', id: record.id });
+  expect(detail.data.record.version).toBe(record.version + 1);
+  expect(
+    detail.data.notes.filter((n: { body: string }) => n.body === 'Competing HTTP writer'),
+  ).toHaveLength(1);
+  const boot = await query(page, 'bootstrap', { slug: 'willow' });
+  const patients = await query(page, 'patients', { slug: 'willow' });
+  const staff = boot.data.members.find((m: { role: string }) => m.role === 'admin');
+  const booking = {
+    slug: 'willow',
+    appointment: {
+      patientId: patients.data[0].id,
+      staffId: staff.id,
+      title: 'Competing HTTP booking',
+      localStart: '2027-01-04T15:00',
+      duration: 30,
+    },
+  };
+  const bookings = await Promise.all([
+    mutate(page, 'saveAppointment', booking),
+    mutate(page, 'saveAppointment', booking),
+  ]);
+  expect(bookings.map((r) => r.response.status()).sort()).toEqual([200, 409]);
+});
+
+test('demo reset replaces only the current workspace', async ({ page, browser }) => {
+  await enter(page);
+  const original = await query(page, 'cases', { slug: 'willow', filters: {} });
+  const otherContext = await browser.newContext({ baseURL: origin });
+  const otherPage = await otherContext.newPage();
+  await enter(otherPage);
+  const other = await query(otherPage, 'cases', { slug: 'willow', filters: {} });
+  const response = await page.request.post(origin + '/api/demo', {
+    headers: { origin },
+    data: { action: 'reset', persona: 'admin' },
+  });
+  expect(response.ok()).toBe(true);
+  expect(
+    (
+      await query(page, 'detail', { slug: 'willow', id: original.data.rows[0].id })
+    ).response.status(),
+  ).toBe(404);
+  expect(
+    (await query(otherPage, 'detail', { slug: 'willow', id: other.data.rows[0].id })).response.ok(),
+  ).toBe(true);
+  expect((await query(page, 'cases', { slug: 'willow', filters: {} })).data.total).toBe(150);
+  await otherContext.close();
+});
