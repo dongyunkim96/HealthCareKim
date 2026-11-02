@@ -23,7 +23,9 @@ npm run dev
 
 `db:migrate` applies the executable PostgreSQL schema, including `btree_gist` and the appointment exclusion constraint. It preserves existing records and serializes concurrent migration attempts with a transaction advisory lock. `db:seed` is idempotent for its named fixture. Browser demo entry creates its own isolated workspace instead of sharing the CLI fixture.
 
-For Vercel, set `DATABASE_URL`, `SESSION_SECRET`, and `APP_ORIGIN` as server environment variables. Keep `DATABASE_URL_UNPOOLED` available to migration tooling. Apply the migration before the first hosted demo request. A Vercel process without `DATABASE_URL` fails explicitly rather than silently writing to an ephemeral SQLite file. The website has not yet been publicly deployed; database creation alone does not publish it.
+For Vercel, set `DATABASE_URL`, `SESSION_SECRET`, and `APP_ORIGIN` as server environment variables. Keep `DATABASE_URL_UNPOOLED` available to migration tooling. Apply the migration before the first hosted demo request. A Vercel process without `DATABASE_URL` fails explicitly rather than silently writing to an ephemeral SQLite file.
+
+The website is now deployed at [health-care-kim.vercel.app](https://health-care-kim.vercel.app/), Vercel project `health-care-kim`, with Node.js 24.x. The Neon integration supplies both database connection variables. Production has a dedicated session Secret and `APP_ORIGIN=https://health-care-kim.vercel.app`. Database schema initialization preceded deployment; `npm run build` does not migrate or seed automatically. Preview session/origin configuration and database isolation require separate setup.
 
 ## Free-plan resource behavior
 
@@ -47,4 +49,6 @@ npm run build
 
 The PostgreSQL test command runs the real PostgreSQL engine in PGlite with `btree_gist`; it does not connect to or modify the hosted account. SQLite tests use separate processes to check competing writes. PGlite tests check competing asynchronous requests in its single embedded engine.
 
-Hosted verification passed six browser scenarios at `http://127.0.0.1:3001`: demo entry through assignment/status/audit/refresh/clinic isolation, API roles/persona switching, appointment creation/conflict/reschedule/cancellation, stale-edit recovery, reset isolation, and competing HTTP edits/bookings. Concurrent transactions over separate pooled Neon connections produced exactly one success and one HTTP 409 for each competing pair. Repeating the seed preserved the same fixture. These checks verify hosted database transport through the local application; they do not verify a public website deployment.
+Hosted verification first passed six browser scenarios at `http://127.0.0.1:3001`: demo entry through assignment/status/audit/refresh/clinic isolation, API roles/persona switching, appointment creation/conflict/reschedule/cancellation, stale-edit recovery, reset isolation, and competing HTTP edits/bookings. Concurrent transactions over separate pooled Neon connections produced exactly one success and one HTTP 409 for each competing pair. Repeating the seed preserved the same fixture.
+
+After deployment, the same six workflows passed against the public Vercel origin in **27.6 seconds**. Vercel reported the production deployment READY. See [verification results](verification.md) for the exact deployment and the boundary between local, hosted-database, and public-site checks.

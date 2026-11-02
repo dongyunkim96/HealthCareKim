@@ -1,5 +1,17 @@
 # Verification report
 
+## Public Vercel and Neon deployment — November 2, 2026
+
+The production website is live at [health-care-kim.vercel.app](https://health-care-kim.vercel.app/). Vercel project `health-care-kim` deployed commit `8c0529b2fdf50f9c2756763a7904da539fc1cf62` from `dongyunkim96/HealthCareKim`, branch `main`, and reached READY. The Linux build completed in 40 seconds. The runtime is Node.js 24.x.
+
+Neon provides `DATABASE_URL` and `DATABASE_URL_UNPOOLED` through its Vercel integration. A dedicated production `SESSION_SECRET` and the exact production `APP_ORIGIN` were configured through the authenticated dashboard after the plugin returned 403 for environment-variable access. No credentials were committed to the repository.
+
+Six Playwright workflows passed against the public production origin in **27.6 seconds**: demo entry/filter/save-view/assignment/status/audit/refresh/clinic isolation; direct API roles and persona switching; appointment creation/rescheduling/cancellation; stale-edit recovery; competing HTTP edits and bookings; and workspace reset isolation. Competing writes returned one success and one HTTP 409 for each pair, with one case version increment and one persisted note.
+
+The post-deployment error/fatal log query returned no entries for this deployment in the checked 15-minute window. This is a bounded observation, not continuous monitoring. Production initialization and synthetic seeding had already completed; the build command does not run them automatically. Preview environments were not verified.
+
+The adapter and initial-build sections below record earlier verification stages. Their statements about a local-only application describe those stages, before the public deployment above.
+
 ## Neon adapter conversion — November 2, 2026
 
 The application now has an asynchronous Neon PostgreSQL runtime adapter selected by `DATABASE_URL`, with the existing SQLite development fallback retained. It is connected to the user-created Neon Free project `neon-indigo-zebra` (`billowing-morning-78982436`), branch `main`, database `neondb`, in AWS us-east-1. Schema migration succeeded through the direct endpoint; application and seed traffic succeeded through the pooled endpoint. No paid plan or external website deployment was activated.
