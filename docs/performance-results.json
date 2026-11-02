@@ -1,0 +1,312 @@
+{
+  "measuredAt": "2026-11-02T18:25:42.816Z",
+  "conditions": "Local production build; Chromium headless; server warm; browser cache disabled; no network throttling; desktop CPU native, mobile CPU throttled 4x. These are navigation/paint timings, not Lighthouse scores.",
+  "samples": [
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 5.3999998569488525,
+      "lcpMs": 164,
+      "cls": 0,
+      "domContentLoadedMs": 22.899999856948853,
+      "loadMs": 151.20000004768372,
+      "resources": 19,
+      "readyMs": 885
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 4.700000047683716,
+      "lcpMs": 420,
+      "cls": 0,
+      "domContentLoadedMs": 29.90000009536743,
+      "loadMs": 75.10000014305115,
+      "resources": 19,
+      "readyMs": 1099
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 2.799999952316284,
+      "lcpMs": 392,
+      "cls": 0,
+      "domContentLoadedMs": 28.299999952316284,
+      "loadMs": 72.89999985694885,
+      "resources": 19,
+      "readyMs": 1095
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/overview",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 11.299999952316284,
+      "lcpMs": 260,
+      "cls": 0.028648647481031377,
+      "domContentLoadedMs": 24.59999990463257,
+      "loadMs": 120.09999990463257,
+      "resources": 34,
+      "readyMs": 981
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/overview",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 7.400000095367432,
+      "lcpMs": 260,
+      "cls": 0.028648647481031377,
+      "domContentLoadedMs": 19.700000047683716,
+      "loadMs": 116.20000004768372,
+      "resources": 34,
+      "readyMs": 986
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/overview",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 6.299999952316284,
+      "lcpMs": 460,
+      "cls": 0.028648647481031377,
+      "domContentLoadedMs": 32.299999952316284,
+      "loadMs": 109.90000009536743,
+      "resources": 34,
+      "readyMs": 1178
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/cases",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 8.799999952316284,
+      "lcpMs": 212,
+      "cls": 0.06715937526791839,
+      "domContentLoadedMs": 21.899999856948853,
+      "loadMs": 116.39999985694885,
+      "resources": 35,
+      "readyMs": 973
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/cases",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 9.700000047683716,
+      "lcpMs": 428,
+      "cls": 0.06715937526791839,
+      "domContentLoadedMs": 35.700000047683716,
+      "loadMs": 110.59999990463257,
+      "resources": 35,
+      "readyMs": 1196
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/app/willow/cases",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 8.899999856948853,
+      "lcpMs": 232,
+      "cls": 0,
+      "domContentLoadedMs": 29,
+      "loadMs": 116.19999980926514,
+      "resources": 35,
+      "readyMs": 973
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 4.5,
+      "lcpMs": 344,
+      "cls": 0,
+      "domContentLoadedMs": 56.90000009536743,
+      "loadMs": 550.7000000476837,
+      "resources": 16,
+      "readyMs": 1409
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 5.099999904632568,
+      "lcpMs": 360,
+      "cls": 0,
+      "domContentLoadedMs": 52,
+      "loadMs": 558.8999998569489,
+      "resources": 16,
+      "readyMs": 1414
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 2.700000047683716,
+      "lcpMs": 352,
+      "cls": 0,
+      "domContentLoadedMs": 52.40000009536743,
+      "loadMs": 547.4000000953674,
+      "resources": 16,
+      "readyMs": 1414
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/overview",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 6.900000095367432,
+      "lcpMs": 896,
+      "cls": 0.06434864503584883,
+      "domContentLoadedMs": 52.30000019073486,
+      "loadMs": 444.2000000476837,
+      "resources": 20,
+      "readyMs": 1983
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/overview",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 11.200000047683716,
+      "lcpMs": 904,
+      "cls": 0.06434864503584883,
+      "domContentLoadedMs": 54.90000009536743,
+      "loadMs": 462.2999999523163,
+      "resources": 20,
+      "readyMs": 1994
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/overview",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 8.200000047683716,
+      "lcpMs": 920,
+      "cls": 0.06434864503584883,
+      "domContentLoadedMs": 50.299999952316284,
+      "loadMs": 457.40000009536743,
+      "resources": 20,
+      "readyMs": 2011
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/cases",
+      "run": 1,
+      "status": 200,
+      "ttfbMs": 8.300000190734863,
+      "lcpMs": 756,
+      "cls": 0.1231802163081784,
+      "domContentLoadedMs": 50.5,
+      "loadMs": 448.80000019073486,
+      "resources": 19,
+      "readyMs": 1653
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/cases",
+      "run": 2,
+      "status": 200,
+      "ttfbMs": 7.599999904632568,
+      "lcpMs": 756,
+      "cls": 0.1231802163081784,
+      "domContentLoadedMs": 54.700000047683716,
+      "loadMs": 449.7999999523163,
+      "resources": 19,
+      "readyMs": 1653
+    },
+    {
+      "profile": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/app/willow/cases",
+      "run": 3,
+      "status": 200,
+      "ttfbMs": 6.8999998569488525,
+      "lcpMs": 752,
+      "cls": 0.1231802163081784,
+      "domContentLoadedMs": 49.799999952316284,
+      "loadMs": 459.59999990463257,
+      "resources": 19,
+      "readyMs": 1704
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET to at least 32 random characters}
+      APP_ORIGIN: ${APP_ORIGIN:-http://127.0.0.1:3000}
+    volumes:
+      - clinic-data:/app/data
+    restart: unless-stopped
+  postgres:
+    image: postgres:17-bookworm
+    profiles: ['postgres-reference']
+    ports:
+      - '127.0.0.1:5432:5432'
+    environment:
+      POSTGRES_DB: healthcarekim
+      POSTGRES_USER: healthcarekim
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations/postgres/0001.sql:/docker-entrypoint-initdb.d/0001.sql:ro
+volumes:
+  clinic-data:
+  postgres-data:
